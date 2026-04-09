@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>S.T.A.R.S. — Strategic Transport & Autonomous Routing System | Traxion</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Space Grotesk + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ══════════════════════════════════════════ NAVBAR ══ -->
+  <nav id="navbar">
+    <div class="nav-brand">
+      <div class="nav-logo-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="nav-titles">
+        <span class="nav-name">S.T.A.R.S.</span>
+        <span class="nav-sub">by TRAXION — Strategic Transport & Autonomous Routing System</span>
+      </div>
+    </div>
+
+    <div class="nav-center">
+      <div class="nav-metric" id="nav-distance">
+        <span class="metric-label">DISTANCIA</span>
+        <span class="metric-val" id="nm-distance">—</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-metric" id="nav-eta">
+        <span class="metric-label">ETA</span>
+        <span class="metric-val" id="nm-eta">—</span>
+      </div>
+      <div class="nav-divider"></div>
+      <div class="nav-metric">
+        <span class="metric-label">FLOTA ACTIVA</span>
+        <span class="metric-val" id="nm-fleet">0</span>
+      </div>
+    </div>
+
+    <div class="nav-right">
+      <div class="digital-clock" id="clock">00:00:00</div>
+      <div class="status-pill" id="status-pill">
+        <div class="pulse-dot" id="pulse-dot"></div>
+        <span id="status-text">SYSTEM: ACTIVE</span>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ══════════════════════════════════════════ APP SHELL ══ -->
+  <div id="app">
+
+    <!-- ─── LEFT PANEL ─── -->
+    <aside id="left-panel">
+
+      <!-- Section: Route Config -->
+      <div class="panel-section">
+        <div class="section-label">
+          <span class="section-icon">◈</span>
+          Configuración de Ruta
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="input-origin">
+            <span class="field-dot origin-dot"></span>
+            Dirección de Inicio
+          </label>
+          <div class="input-wrapper">
+            <input type="text" id="input-origin" class="field-input"
+                   placeholder="Ej: Insurgentes Sur 1602, CDMX" autocomplete="off" />
+            <div class="input-status" id="origin-status"></div>
+          </div>
+        </div>
+
+        <div class="route-connector">
+          <div class="connector-line"></div>
+          <div class="connector-dots">
+            <span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label class="field-label" for="input-dest">
+            <span class="field-dot dest-dot"></span>
+            Dirección de Destino
+          </label>
+          <div class="input-wrapper">
+            <input type="text" id="input-dest" class="field-input"
+                   placeholder="Ej: Av. Reforma 222, CDMX" autocomplete="off" />
+            <div class="input-status" id="dest-status"></div>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field-group">
+            <label class="field-label" for="input-passengers">
+              <span class="label-icon">👥</span> Pasajeros
+            </label>
+            <input type="number" id="input-passengers" class="field-input"
+                   placeholder="0" min="1" max="100" value="24" />
+          </div>
+          <div class="field-group">
+            <label class="field-label" for="input-time">
+              <span class="label-icon">⏱</span> Llegada
+            </label>
+            <input type="time" id="input-time" class="field-input" value="08:30" />
+          </div>
+        </div>
+
+        <!-- Fleet Count -->
+        <div class="field-group">
+          <label class="field-label" for="input-fleet">
+            <span class="label-icon">🚌</span> Unidades de Flota
+          </label>
+          <input type="number" id="input-fleet" class="field-input"
+                 placeholder="3" min="1" max="10" value="3" />
+        </div>
+      </div>
+
+      <!-- CTA Button -->
+      <div class="panel-section" style="padding-top: 0; border-bottom: none;">
+        <button id="btn-generate" onclick="STARS.handleGenerate()">
+          <svg class="btn-svg" viewBox="0 0 24 24" fill="none">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Generar Estructura de Ruta
+        </button>
+
+        <!-- Progress -->
+        <div id="progress-wrap">
+          <div class="progress-track">
+            <div class="progress-bar" id="progress-bar"></div>
+          </div>
+          <div class="progress-phases" id="progress-phases">
+            <span class="phase" id="ph-1">● Geocodificando</span>
+            <span class="phase" id="ph-2">● Directions API</span>
+            <span class="phase" id="ph-3">● Places API</span>
+            <span class="phase" id="ph-4">● Calculando SLA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Panel -->
+      <div id="chat-panel">
+        <div class="chat-header">
+          <div class="chat-agent-avatar">AI</div>
+          <div class="chat-agent-info">
+            <div class="agent-name">S.T.A.R.S. Agent</div>
+            <div class="agent-status" id="agent-status-dot">
+              <span class="online-dot"></span> En línea
+            </div>
+          </div>
+          <div class="chat-badge" id="msg-count">0</div>
+        </div>
+        <div id="chat-messages"></div>
+      </div>
+
+    </aside>
+
+    <!-- ─── MAP AREA ─── -->
+    <main id="map-area" style="position:relative; flex:1; min-width:0; height:100%; overflow:hidden;">
+
+      <!-- Google Maps mounts here -->
+      <div id="map-container" style="position:absolute; top:0; left:0; width:100%; height:100%;"></div>
+
+      <!-- API Key placeholder notice -->
+      <div id="api-notice">
+        <div class="api-notice-inner">
+          <div class="api-icon">
+            <svg viewBox="0 0 24 24" fill="none" width="32" height="32">
+              <circle cx="11" cy="11" r="8" stroke="#38bdf8" stroke-width="1.5"/>
+              <path d="m21 21-4.35-4.35" stroke="#38bdf8" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h2>Motor Cartográfico Listo</h2>
+          <p>Configura tu <code>GOOGLE_MAPS_API_KEY</code> en <code>app.js</code> para activar el mapa en vivo, Directions API y Places API.</p>
+          <div class="api-steps">
+            <div class="api-step">
+              <span class="step-num">1</span>
+              <span>Obtén tu key en <strong>console.cloud.google.com</strong></span>
+            </div>
+            <div class="api-step">
+              <span class="step-num">2</span>
+              <span>Habilita: Maps JS API + Directions + Places + Geocoding</span>
+            </div>
+            <div class="api-step">
+              <span class="step-num">3</span>
+              <span>Pégala en <code>app.js</code> línea 1</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Overlay — Top Right -->
+      <div id="kpi-overlay">
+        <div class="kpi-card" id="kpi-fuel-card">
+          <div class="kpi-header">
+            <span class="kpi-icon">⛽</span>
+            <span class="kpi-label">Ahorro Combustible</span>
+          </div>
+          <div class="kpi-value orange" id="kpi-fuel">—</div>
+          <div class="kpi-detail" id="kpi-fuel-detail">Esperando ruta real...</div>
+          <div class="kpi-bar-wrap">
+            <div class="kpi-bar-track">
+              <div class="kpi-bar-fill orange-fill" id="fuel-bar"></div>
+            </div>
+          </div>
+          <div class="kpi-formula" id="kpi-fuel-formula"></div>
+        </div>
+
+        <div class="kpi-card" id="kpi-time-card">
+          <div class="kpi-header">
+            <span class="kpi-icon">⏱</span>
+            <span class="kpi-label">Tiempo de Tráfico</span>
+          </div>
+          <div class="kpi-value blue" id="kpi-time">—</div>
+          <div class="kpi-detail" id="kpi-time-detail">Sin ruta activa</div>
+          <div class="kpi-bar-wrap">
+            <div class="kpi-bar-track">
+              <div class="kpi-bar-fill blue-fill" id="time-bar"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="kpi-card" id="kpi-sla-card">
+          <div class="kpi-header">
+            <span class="kpi-icon">✅</span>
+            <span class="kpi-label">Cumplimiento SLA</span>
+          </div>
+          <div class="kpi-value green" id="kpi-sla">—</div>
+          <div class="kpi-detail" id="kpi-sla-detail">Sin evaluación</div>
+          <div class="kpi-bar-wrap">
+            <div class="kpi-bar-track">
+              <div class="kpi-bar-fill green-fill" id="sla-bar"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- SLA Alert Banner -->
+      <div id="sla-alert" class="sla-alert hidden">
+        <span class="alert-icon">⚠️</span>
+        <span id="sla-alert-text">ALERTA SLA: El tiempo de tráfico supera el horario requerido.</span>
+      </div>
+
+      <!-- Fleet Panel — Bottom Left -->
+      <div id="fleet-panel">
+        <div class="fleet-header">
+          <span class="fleet-icon">🚌</span>
+          <span class="fleet-title">Flota Activa</span>
+          <span class="fleet-count" id="fleet-count">0 unidades</span>
+        </div>
+        <div id="fleet-units"></div>
+      </div>
+
+      <!-- Footer -->
+      <div id="footer-bar">
+        <div class="footer-metrics">
+          <span class="footer-item">
+            <span class="fi-label">SISTEMA</span>
+            <span class="fi-val" id="ft-system">IDLE</span>
+          </span>
+          <span class="footer-sep">|</span>
+          <span class="footer-item">
+            <span class="fi-label">DISTANCIA REAL</span>
+            <span class="fi-val" id="ft-dist">—</span>
+          </span>
+          <span class="footer-sep">|</span>
+          <span class="footer-item">
+            <span class="fi-label">PARADAS</span>
+            <span class="fi-val" id="ft-stops">0</span>
+          </span>
+          <span class="footer-sep">|</span>
+          <span class="footer-item">
+            <span class="fi-label">UNIDADES</span>
+            <span class="fi-val" id="ft-units">0</span>
+          </span>
+          <span class="footer-sep">|</span>
+          <span class="footer-item">
+            <span class="fi-label">DIRECTIONS API</span>
+            <span class="fi-val" id="ft-api">STANDBY</span>
+          </span>
+        </div>
+        <div class="footer-ticker" id="ft-ticker">
+          S.T.A.R.S. v3.0 MVP — TRAXION LOGISTICS INTELLIGENCE — AWAITING ROUTE PARAMETERS
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Google Maps API — reemplaza YOUR_API_KEY en app.js -->
+  <script>
+    // La clave se inyecta dinámicamente desde app.js
+    // para centralizar la configuración en un solo lugar.
+  </script>
+  <script src="app.js"></script>
+
+</body>
+</html>
